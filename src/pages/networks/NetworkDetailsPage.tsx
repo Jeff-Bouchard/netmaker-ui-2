@@ -2226,7 +2226,7 @@ export default function NetworkDetailsPage(props: PageProps) {
               </Typography.Text>
             </Col>
             <Col xs={24} xl={(24 * 1) / 3} style={{ position: 'relative' }}>
-              <Card className="header-card" style={{ position: 'absolute', width: '100%' }}>
+              {/* <Card className="header-card" style={{ position: 'absolute', width: '100%' }}>
                 <Typography.Title level={3}>Create Client Config</Typography.Title>
                 <Typography.Text>
                   Enable remote access to your network with a Client. A Client is a simple config file that runs on any
@@ -2250,6 +2250,19 @@ export default function NetworkDetailsPage(props: PageProps) {
                   <Col>
                     <Button type="primary" size="large" onClick={() => setIsAddClientModalOpen(true)}>
                       <PlusOutlined /> Create Client Config
+                    </Button>
+                  </Col>
+                </Row>
+              </Card> */}
+              <Card className="header-card" style={{ position: 'absolute', width: '100%' }}>
+                <Typography.Title level={3}>Create Client Gateway</Typography.Title>
+                <Typography.Text>
+                  You will need to create a client gateway for your network before you can create a client.
+                </Typography.Text>
+                <Row style={{ marginTop: '1rem' }}>
+                  <Col>
+                    <Button type="primary" size="large" onClick={() => setIsAddClientGatewayModalOpen(true)}>
+                      <PlusOutlined /> Create Client Gateway
                     </Button>
                   </Col>
                 </Row>
@@ -2314,6 +2327,18 @@ export default function NetworkDetailsPage(props: PageProps) {
                         },
                       };
                     }}
+                    rowSelection={{
+                      type: 'checkbox',
+                      hideSelectAll: true,
+                      selectedRowKeys: selectedGateway ? [selectedGateway.id] : [],
+                      onSelect: (record, selected) => {
+                        if (selectedGateway?.id === record.id) {
+                          setSelectedGateway(null);
+                        } else {
+                          setSelectedGateway(record);
+                        }
+                      },
+                    }}
                   />
                 </Col>
               </Row>
@@ -2334,7 +2359,7 @@ export default function NetworkDetailsPage(props: PageProps) {
                   >
                     <PlusOutlined /> Create Config
                   </Button>
-                  <div className="display-all-container-switch">
+                  {/* <div className="display-all-container-switch">
                     Display All{' '}
                     <Switch
                       title="Display all clients. Click a gateway to filter clients specific to that gateway."
@@ -2343,7 +2368,7 @@ export default function NetworkDetailsPage(props: PageProps) {
                         setSelectedGateway(null);
                       }}
                     />
-                  </div>
+                  </div> */}
                 </Col>
               </Row>
               <Row style={{ marginTop: '1rem' }}>
@@ -2460,6 +2485,19 @@ export default function NetworkDetailsPage(props: PageProps) {
                           else setFilteredEgress(egress);
                         },
                       };
+                    }}
+                    rowSelection={{
+                      type: 'checkbox',
+                      hideSelectAll: true,
+                      selectedRowKeys: filteredEgress ? [filteredEgress.id] : [],
+                      onSelect: (record, selected) => {
+                        if (!selected) return;
+                        if (filteredEgress?.id === record.id) {
+                          setFilteredEgress(null);
+                        } else {
+                          setFilteredEgress(record);
+                        }
+                      },
                     }}
                   />
                 </Col>
@@ -2608,6 +2646,19 @@ export default function NetworkDetailsPage(props: PageProps) {
                       };
                     }}
                     scroll={{ x: true }}
+                    rowSelection={{
+                      type: 'checkbox',
+                      hideSelectAll: true,
+                      selectedRowKeys: selectedRelay ? [selectedRelay.id] : [],
+                      onSelect: (record, selected) => {
+                        if (!selected) return;
+                        if (selectedRelay?.id === record.id) {
+                          setSelectedRelay(null);
+                        } else {
+                          setSelectedRelay(record);
+                        }
+                      },
+                    }}
                   />
                 </Col>
               </Row>
@@ -3241,9 +3292,14 @@ export default function NetworkDetailsPage(props: PageProps) {
 
   useEffect(() => {
     if (isInitialLoad) {
-      setSelectedRelay(filteredRelays[0] ?? null);
-      setFilteredEgress(filteredEgresses[0] ?? null);
-      setSelectedGateway(filteredClientGateways[0] ?? null);
+      const sortedRelays = filteredRelays.sort((a, b) => (a.name && b.name ? a.name.localeCompare(b.name) : 0));
+      const sortedEgresses = filteredEgresses.sort((a, b) => (a.name && b.name ? a.name.localeCompare(b.name) : 0));
+      const sortedClientGateways = filteredClientGateways.sort((a, b) =>
+        a.name && b.name ? a.name.localeCompare(b.name) : 0,
+      );
+      setSelectedRelay(sortedRelays[0] ?? null);
+      setFilteredEgress(sortedEgresses[0] ?? null);
+      setSelectedGateway(sortedClientGateways[0] ?? null);
       setIsInitialLoad(false);
     }
   }, [filteredRelays, filteredEgresses, isInitialLoad, filteredClientGateways]);
@@ -3314,7 +3370,7 @@ export default function NetworkDetailsPage(props: PageProps) {
               </Col>
             </Row>
 
-            <Tabs items={networkTabs} />
+            <Tabs items={networkTabs} onChange={() => setIsInitialLoad(true)} />
           </Col>
         </Row>
       </Skeleton>
@@ -3328,6 +3384,7 @@ export default function NetworkDetailsPage(props: PageProps) {
         onCancel={() => setIsAddDnsModalOpen(false)}
       />
       <AddClientModal
+        key={selectedGateway ? `add-client-${selectedGateway.id}` : 'add-client'}
         isOpen={isAddClientModalOpen}
         networkId={networkId}
         preferredGateway={selectedGateway ?? undefined}

@@ -201,6 +201,21 @@ export default function AddIngressModal({ isOpen, onCreateIngress, onCancel, net
                               },
                             };
                           }}
+                          rowSelection={{
+                            type: 'checkbox',
+                            hideSelectAll: true,
+                            selectedRowKeys: selectedNode ? [selectedNode.id] : [],
+                            onSelect: (record, selected) => {
+                              if (selectedNode?.id === record.id) {
+                                setSelectedNode(null);
+                                form.setFieldValue('node', undefined);
+                              } else {
+                                setSelectedNode(record);
+                                form.setFieldValue('node', { ...record, label: record.name });
+                                setIsSelectOpen(false);
+                              }
+                            },
+                          }}
                         />
                       </Col>
                     </Row>
